@@ -7,42 +7,31 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #2d3e50;
             margin: 0;
             padding: 0;
+            background-color: #2d3e50;
             color: #fff;
-        }
-
-        #game-container {
-            display: flex;
-            height: 100vh;
-        }
-
-        #sidebar {
-            width: 300px;
-            background-color: #2c3e50;
-            padding: 15px;
-            color: #fff;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
         }
 
         #map-container {
-            flex-grow: 1;
-            position: relative;
-            overflow: hidden;
-            background-color: #111;
+            width: 100%;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            overflow: hidden;
         }
 
         #world-map {
-            width: 100%;
+            width: 80%;
             height: auto;
+            cursor: pointer;
+            border: 2px solid #fff;
             transition: transform 0.3s ease;
+        }
+
+        #world-map:hover {
+            transform: scale(1.05);
         }
 
         .territory {
@@ -56,209 +45,25 @@
             fill: #dcdcdc;
         }
 
-        .player {
-            fill: #36e36a;
-        }
-
-        .ai {
-            fill: #e74c3c;
-        }
-
-        .unoccupied {
-            fill: #7f8c8d;
-        }
-
         .territory.selected {
             fill: #2980b9;
-        }
-
-        .resources {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .resources p {
-            margin: 10px 0;
-        }
-
-        .game-over {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 48px;
-            color: red;
-            font-weight: bold;
-        }
-
-        .button {
-            background-color: #3498db;
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-            border: none;
-        }
-
-        .button:hover {
-            background-color: #2980b9;
-        }
-
-        .scout-report {
-            padding: 10px;
-            background-color: #34495e;
-            border-radius: 10px;
-            margin-top: 10px;
-            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div id="game-container">
-        <aside id="sidebar">
-            <h2>Game Controls</h2>
-            <p>Gold: <span id="gold-count">20000</span></p>
-            <p>Corn: <span id="corn-count">1000</span></p>
-            <p>Wood: <span id="wood-count">1000</span></p>
-            <p>Troops: <span id="troop-count">0</span></p>
-            <p>City Level: <span id="city-level">1</span></p>
-            <button class="button" onclick="trainTroops()">Train Troops (2k Gold)</button>
-            <button class="button" onclick="upgradeCity()">Upgrade City</button>
-            <div class="resources">
-                <p>Train Troops (Cost 2k Gold)</p>
-                <p>Upgrade City (Level 2: 1k Gold, 1k Corn, 1k Wood)</p>
-                <p>Upgrade City (Level 3: 5k Gold, 5k Corn, 5k Wood)</p>
-            </div>
-        </aside>
 
-        <main id="map-container">
-            <div id="world-map">
-                <!-- Example paths for countries. Replace these with the real world country polygons. -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" id="world-svg">
-                    <!-- Spain (Player Territory) -->
-                    <path class="territory player" id="spain" d="M150,100 L200,100 L200,150 L150,150 Z" data-country="Spain"></path>
-                    <!-- AI Territories -->
-                    <path class="territory ai" id="poland" d="M300,50 L350,50 L350,100 L300,100 Z" data-country="Poland"></path>
-                    <path class="territory ai" id="usa" d="M500,150 L550,150 L550,200 L500,200 Z" data-country="USA"></path>
-                    <!-- Add more countries here -->
-                </svg>
-            </div>
-
-            <div class="game-over" id="game-over-message">Game Over! You Lost Your Territory.</div>
-        </main>
+    <div id="map-container">
+        <!-- The World Map Image -->
+        <img id="world-map" src="2048px-BlankMap-World.svg.png" alt="World Map" />
     </div>
 
     <script>
-        // Global variables
-        let gold = 20000;
-        let corn = 1000;
-        let wood = 1000;
-        let troops = 0;
-        let cityLevel = 1;
-        let gameOver = false;
-        let playerTerritory = "Spain";
-        let aiTerritories = {
-            "Poland": { troops: 500, allies: false, attacking: false },
-            "USA": { troops: 500, allies: false, attacking: false }
-        };
-
-        // Zoom functionality
-        let scale = 1;
-        const worldSvg = document.getElementById("world-svg");
-        
-        // Function to train troops
-        function trainTroops() {
-            if (gold >= 2000) {
-                gold -= 2000;
-                troops += 1000;
-                updateResources();
-            }
-        }
-
-        // Function to upgrade city
-        function upgradeCity() {
-            if (cityLevel === 1 && gold >= 1000 && corn >= 1000 && wood >= 1000) {
-                gold -= 1000;
-                corn -= 1000;
-                wood -= 1000;
-                cityLevel = 2;
-                updateResources();
-            } else if (cityLevel === 2 && gold >= 5000 && corn >= 5000 && wood >= 5000) {
-                gold -= 5000;
-                corn -= 5000;
-                wood -= 5000;
-                cityLevel = 3;
-                updateResources();
-            }
-        }
-
-        // Function to update resource counts
-        function updateResources() {
-            document.getElementById("gold-count").innerText = gold;
-            document.getElementById("corn-count").innerText = corn;
-            document.getElementById("wood-count").innerText = wood;
-            document.getElementById("troop-count").innerText = troops;
-            document.getElementById("city-level").innerText = cityLevel;
-        }
-
-        // Function to handle territory selection and actions
-        worldSvg.addEventListener("click", (event) => {
-            const selectedTerritory = event.target.getAttribute("data-country");
-            if (!selectedTerritory) return;
-
-            if (selectedTerritory === playerTerritory) {
-                alert("You are already in your territory.");
-                return;
-            }
-
-            if (aiTerritories[selectedTerritory]) {
-                handleAttack(selectedTerritory);
-            } else {
-                handleConquest(selectedTerritory);
-            }
+        // Example of adding interactivity to the map
+        document.getElementById("world-map").addEventListener("click", function() {
+            alert("You clicked on the world map!");
+            // Here you can implement the game logic (e.g., attacking a country, etc.)
         });
-
-        // Function to attack another territory
-        function handleAttack(target) {
-            const ai = aiTerritories[target];
-            if (troops > ai.troops) {
-                alert("You successfully conquer " + target + "!");
-                aiTerritories[target] = { troops: 0, allies: false, attacking: false };
-                gold += 20000;
-                updateResources();
-            } else {
-                alert("You failed to conquer " + target + ". Try gathering more troops.");
-            }
-        }
-
-        // Function to conquer an unoccupied territory
-        function handleConquest(target) {
-            alert("You have successfully conquered " + target + "!");
-            gold += 20000;
-            updateResources();
-        }
-
-        // AI Invading logic (runs every 10 seconds)
-        setInterval(() => {
-            if (!gameOver) {
-                for (let ai in aiTerritories) {
-                    const territory = aiTerritories[ai];
-                    if (territory.attacking) {
-                        alert(ai + " is attacking your territory!");
-                        if (troops < 500) {
-                            alert("You don't have enough troops to defend!");
-                            gameOver = true;
-                            document.getElementById("game-over-message").style.display = "block";
-                        }
-                    } else if (territory.troops < 1000) {
-                        territory.troops += 500;
-                    }
-                }
-            }
-        }, 10000);
-
     </script>
+
 </body>
 </html>
