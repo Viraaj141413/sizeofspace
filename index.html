@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Geography War Game</title>
     <style>
+        /* General styles */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -19,7 +20,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
+            position: relative;
         }
 
         #world-map {
@@ -34,35 +35,142 @@
             transform: scale(1.05);
         }
 
-        .territory {
+        /* Sidebar */
+        #sidebar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 300px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .panel {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .panel h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .panel button {
+            background-color: #2980b9;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            margin-top: 10px;
             cursor: pointer;
-            transition: fill 0.3s ease;
-            stroke: #444;
-            stroke-width: 1;
+            border-radius: 5px;
         }
 
-        .territory:hover {
-            fill: #dcdcdc;
+        .panel button:hover {
+            background-color: #1abc9c;
         }
 
-        .territory.selected {
-            fill: #2980b9;
+        #dialogue-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+        }
+
+        #dialogue-box p {
+            font-size: 16px;
+        }
+
+        #dialogue-box button {
+            background-color: #f39c12;
+            color: #fff;
+            padding: 10px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
 
+    <!-- Sidebar Panel -->
+    <div id="sidebar">
+        <div class="panel">
+            <h2>Economy</h2>
+            <p>Gold: <span id="gold-count">20000</span></p>
+            <p>Troops: <span id="troop-count">0</span></p>
+        </div>
+        <div class="panel">
+            <h2>War Actions</h2>
+            <button onclick="attack()">Attack</button>
+            <button onclick="defend()">Defend</button>
+            <button onclick="trainTroops()">Train Troops</button>
+        </div>
+    </div>
+
+    <!-- Map container -->
     <div id="map-container">
-        <!-- The World Map Image -->
         <img id="world-map" src="2048px-BlankMap-World.svg.png" alt="World Map" />
     </div>
 
+    <!-- Dialogue Box -->
+    <div id="dialogue-box">
+        <p id="dialogue-text">Welcome to the Geography War Game! Click on a territory to begin.</p>
+        <button onclick="nextDialogue()">Next</button>
+    </div>
+
     <script>
-        // Example of adding interactivity to the map
-        document.getElementById("world-map").addEventListener("click", function() {
-            alert("You clicked on the world map!");
-            // Here you can implement the game logic (e.g., attacking a country, etc.)
+        // Initial variables
+        let gold = 20000;
+        let troops = 0;
+
+        // Event listener to interact with the world map
+        document.getElementById("world-map").addEventListener("click", function(event) {
+            let x = event.offsetX;
+            let y = event.offsetY;
+
+            // Example: Use coordinates of where the user clicks to simulate interaction
+            // For now, just show the clicked area
+            alert(`You clicked at X: ${x}, Y: ${y}. Choose your action!`);
+
+            // Implement additional logic to identify which country is clicked and handle game interactions
         });
+
+        // Functions for game actions
+        function attack() {
+            alert("You chose to attack! Prepare for war!");
+        }
+
+        function defend() {
+            alert("You chose to defend! Strengthen your forces!");
+        }
+
+        function trainTroops() {
+            if (gold >= 2000) {
+                gold -= 2000;
+                troops += 1000;
+                document.getElementById("gold-count").innerText = gold;
+                document.getElementById("troop-count").innerText = troops;
+                alert("Training troops! 1000 troops added.");
+            } else {
+                alert("Not enough gold!");
+            }
+        }
+
+        function nextDialogue() {
+            document.getElementById("dialogue-text").innerText = "Choose your next move wisely. The world awaits your command!";
+        }
     </script>
 
 </body>
