@@ -12,6 +12,7 @@
             padding: 0;
             background-color: #2d3e50;
             color: #fff;
+            overflow: hidden;
         }
 
         #map-container {
@@ -21,13 +22,13 @@
             justify-content: center;
             align-items: center;
             position: relative;
+            overflow: hidden;
         }
 
         #world-map {
-            width: 80%;
-            height: auto;
+            width: 100%;
+            max-width: 1500px;
             cursor: pointer;
-            border: 2px solid #fff;
             transition: transform 0.3s ease;
         }
 
@@ -100,6 +101,19 @@
             cursor: pointer;
             border-radius: 5px;
         }
+
+        .territory {
+            cursor: pointer;
+            transition: fill 0.3s ease;
+        }
+
+        .territory:hover {
+            fill: #dcdcdc;
+        }
+
+        .territory.selected {
+            fill: #2980b9;
+        }
     </style>
 </head>
 <body>
@@ -121,7 +135,13 @@
 
     <!-- Map container -->
     <div id="map-container">
-        <img id="world-map" src="2048px-BlankMap-World.svg.png" alt="World Map" />
+        <!-- Insert the SVG map here -->
+        <svg id="world-map" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1000">
+            <!-- Example of clickable country regions -->
+            <path id="usa" class="territory" d="M300,200 L400,250 L350,300 L300,350 Z" fill="gray" onclick="selectTerritory('USA')" />
+            <path id="brazil" class="territory" d="M500,600 L600,650 L550,700 L500,750 Z" fill="gray" onclick="selectTerritory('Brazil')" />
+            <!-- More countries can be added here -->
+        </svg>
     </div>
 
     <!-- Dialogue Box -->
@@ -134,26 +154,40 @@
         // Initial variables
         let gold = 20000;
         let troops = 0;
+        let selectedTerritory = null;
 
-        // Event listener to interact with the world map
-        document.getElementById("world-map").addEventListener("click", function(event) {
-            let x = event.offsetX;
-            let y = event.offsetY;
+        // Territory selection
+        function selectTerritory(country) {
+            selectedTerritory = country;
+            document.getElementById("dialogue-text").innerText = `You selected ${country}. Choose your next action.`;
+            highlightTerritory(country);
+        }
 
-            // Example: Use coordinates of where the user clicks to simulate interaction
-            // For now, just show the clicked area
-            alert(`You clicked at X: ${x}, Y: ${y}. Choose your action!`);
-
-            // Implement additional logic to identify which country is clicked and handle game interactions
-        });
+        function highlightTerritory(country) {
+            const allTerritories = document.querySelectorAll('.territory');
+            allTerritories.forEach(territory => {
+                territory.classList.remove('selected');
+                if (territory.id === country.toLowerCase()) {
+                    territory.classList.add('selected');
+                }
+            });
+        }
 
         // Functions for game actions
         function attack() {
-            alert("You chose to attack! Prepare for war!");
+            if (selectedTerritory) {
+                alert(`You are attacking ${selectedTerritory}!`);
+            } else {
+                alert('Please select a territory to attack!');
+            }
         }
 
         function defend() {
-            alert("You chose to defend! Strengthen your forces!");
+            if (selectedTerritory) {
+                alert(`You are defending ${selectedTerritory}!`);
+            } else {
+                alert('Please select a territory to defend!');
+            }
         }
 
         function trainTroops() {
