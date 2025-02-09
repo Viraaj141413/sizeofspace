@@ -3,137 +3,272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>World Conqueror - Geography Game</title>
+    <title>Geography War Game</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
+            font-family: 'Arial', sans-serif;
+            background-color: #1f1f1f;
+            color: white;
             margin: 0;
             padding: 0;
+        }
+
+        #game-container {
             display: flex;
-            justify-content: center;
-            align-items: center;
             height: 100vh;
         }
-        .game-container {
+
+        #sidebar {
+            width: 300px;
+            padding: 20px;
+            background-color: #2c2c2c;
+            border-right: 2px solid #444;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-            width: 80%;
+            justify-content: space-between;
         }
-        .game-header {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        .map {
-            width: 500px;
-            height: 300px;
-            background-color: #ddd;
-            margin-bottom: 20px;
+
+        #map-container {
+            flex-grow: 1;
             position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            overflow: hidden;
+            background-color: #111;
         }
-        .country {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: #4caf50;
-            position: absolute;
+
+        svg {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .territory {
             cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
+            transition: fill 0.3s ease;
+            stroke: #222;
+            stroke-width: 1;
         }
-        .button {
-            padding: 10px 20px;
-            background-color: #4caf50;
+
+        .territory:hover {
+            fill: #dcdcdc;
+        }
+
+        .player {
+            fill: #36e36a;
+        }
+
+        .ai {
+            fill: #e74c3c;
+        }
+
+        .unoccupied {
+            fill: #7f8c8d;
+        }
+
+        .territory.selected {
+            fill: #2980b9;
+        }
+
+        .resources {
+            background-color: #3a3a3a;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .resources h2 {
+            margin-bottom: 10px;
+            font-size: 22px;
+            color: #f39c12;
+        }
+
+        .resources p {
+            font-size: 18px;
+        }
+
+        button {
+            background-color: #2980b9;
             color: white;
+            font-size: 18px;
+            padding: 10px;
+            margin-top: 10px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            transition: all 0.3s ease;
         }
-        .button:hover {
-            background-color: #45a049;
+
+        button:hover {
+            background-color: #3498db;
+            transform: scale(1.05);
+        }
+
+        .game-over {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 36px;
+            font-weight: bold;
+            color: red;
+            display: none;
+        }
+
+        .panel {
+            background-color: #34495e;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+
+        .panel h2 {
+            font-size: 20px;
+            margin: 0;
+            color: #f39c12;
+        }
+
+        .panel button {
+            margin-top: 10px;
+            background-color: #2ecc71;
+        }
+
+        .panel button:hover {
+            background-color: #27ae60;
+        }
+
+        .war-actions {
+            background-color: #34495e;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .ai-bot {
+            fill: #e74c3c;
         }
     </style>
 </head>
 <body>
+    <div id="game-container">
+        <aside id="sidebar">
+            <div class="resources">
+                <h2>Resources</h2>
+                <p>Gold: <span id="gold-count">1000</span></p>
+                <p>Troops: <span id="troop-count">500</span></p>
+                <button onclick="trainTroops()">Train Troops (5k Gold)</button>
+                <button onclick="upgradeCity()">Upgrade City (15k Gold)</button>
+            </div>
 
-    <div class="game-container">
-        <div class="game-header">World Conqueror</div>
-        <div class="map" id="map">
-            <!-- Countries will appear here -->
-        </div>
-        <button class="button" onclick="startGame()">Start Game</button>
-        <div id="message"></div>
+            <div id="war-panel" class="panel" style="display: none;">
+                <h2>War Actions</h2>
+                <button onclick="attack()">Attack</button>
+                <button onclick="goBack()">Go Back</button>
+            </div>
+        </aside>
+
+        <main id="map-container">
+            <svg id="world-map" xmlns="http://www.w3.org/2000/svg">
+                <!-- Example countries (you would need to include the full SVG for countries) -->
+                <path id="spain" class="territory unoccupied" d="M100,100 L150,100 L150,150 L100,150 Z" data-country="Spain"></path>
+                <path id="poland" class="territory ai" d="M200,50 L250,50 L250,100 L200,100 Z" data-country="Poland"></path>
+                <!-- Add more countries and territories here -->
+            </svg>
+        </main>
+
+        <div class="game-over" id="game-over-message">Game Over! You Lost Your Territory.</div>
     </div>
 
     <script>
-        // List of countries to simulate territories
-        const countries = [
-            { name: 'USA', position: { x: 50, y: 100 }, color: 'green' },
-            { name: 'Brazil', position: { x: 200, y: 100 }, color: 'red' },
-            { name: 'China', position: { x: 350, y: 200 }, color: 'blue' },
-            { name: 'India', position: { x: 100, y: 300 }, color: 'purple' }
+        let selectedTerritory = null;
+        let gold = 1000;
+        let troops = 500;
+        let gameOver = false;
+
+        // Add AI bots randomly in countries
+        const aiBots = [
+            { country: 'Poland', territory: '#poland' },
+            // Add 9 other AI bots in random countries here...
         ];
 
-        let playerTerritories = [];
-        let enemyTerritories = [...countries];
-        let gameStarted = false;
+        aiBots.forEach(bot => {
+            const botTerritory = document.querySelector(bot.territory);
+            if (botTerritory) {
+                botTerritory.classList.add('ai'); // Mark territory as occupied by AI bot
+            }
+        });
 
-        // Function to start the game
-        function startGame() {
-            gameStarted = true;
-            playerTerritories = [];
-            enemyTerritories = [...countries];
+        // Event listener for territory selection
+        document.querySelectorAll('.territory').forEach(territory => {
+            territory.addEventListener('click', function() {
+                if (gameOver) return;
 
-            document.querySelector('.game-header').textContent = "Conquer the World!";
-            document.getElementById("message").textContent = "Click on any territory to conquer it.";
-
-            // Create clickable countries on the map
-            countries.forEach((country, index) => {
-                const countryElement = document.createElement("div");
-                countryElement.classList.add("country");
-                countryElement.textContent = country.name;
-                countryElement.style.top = `${country.position.y}px`;
-                countryElement.style.left = `${country.position.x}px`;
-                countryElement.style.backgroundColor = country.color;
-
-                countryElement.onclick = function() {
-                    conquerTerritory(index);
-                };
-
-                document.getElementById("map").appendChild(countryElement);
+                if (this.classList.contains('unoccupied')) {
+                    selectedTerritory = this;
+                    this.classList.add('selected');
+                    document.getElementById("war-panel").style.display = 'block';
+                    document.getElementById("war-panel").innerHTML = `<h2>You clicked on ${this.getAttribute('data-country')}</h2>`;
+                } else {
+                    alert(`You can't attack ${this.getAttribute('data-country')} because it's already occupied.`);
+                }
             });
+        });
+
+        // Attack function
+        function attack() {
+            if (selectedTerritory) {
+                selectedTerritory.classList.remove('unoccupied');
+                selectedTerritory.classList.add('player');
+                selectedTerritory.classList.remove('selected');
+
+                // Award coins for conquering territory
+                gold += 20000;
+                document.getElementById("gold-count").innerText = gold;
+
+                alert(`You have attacked and taken over ${selectedTerritory.getAttribute('data-country')}! You received 20,000 coins.`);
+            }
+
+            document.getElementById("war-panel").style.display = 'none';
         }
 
-        // Function to conquer a territory
-        function conquerTerritory(index) {
-            if (gameStarted) {
-                const conqueredCountry = countries[index];
-                if (enemyTerritories.includes(conqueredCountry)) {
-                    playerTerritories.push(conqueredCountry);
-                    enemyTerritories.splice(enemyTerritories.indexOf(conqueredCountry), 1);
-                    document.getElementById("message").textContent = `You conquered ${conqueredCountry.name}!`;
+        // Go back to the world map
+        function goBack() {
+            if (selectedTerritory) {
+                selectedTerritory.classList.remove('selected');
+            }
+            document.getElementById("war-panel").style.display = 'none';
+        }
 
-                    // Check if player has won
-                    if (enemyTerritories.length === 0) {
-                        document.getElementById("message").textContent = "Congratulations! You've conquered the world!";
-                    }
-                } else {
-                    document.getElementById("message").textContent = `You already own ${conqueredCountry.name}.`;
-                }
+        // Train troops (cooldown of 10 seconds)
+        function trainTroops() {
+            if (gold >= 5000) {
+                gold -= 5000;
+                document.getElementById("gold-count").innerText = gold;
+
+                alert('Training troops... you will get 1000 troops after 10 seconds.');
+                setTimeout(() => {
+                    troops += 1000;
+                    document.getElementById("troop-count").innerText = troops;
+                }, 10000); // 10-second cooldown
+            } else {
+                alert('You need at least 5000 gold to train troops!');
             }
         }
-    </script>
 
+        // Upgrade city (cost 15k gold)
+        function upgradeCity() {
+            if (gold >= 15000) {
+                gold -= 15000;
+                document.getElementById("gold-count").innerText = gold;
+                alert('Your city has been upgraded!');
+            } else {
+                alert('You need at least 15000 gold to upgrade your city!');
+            }
+        }
+
+        // If the player loses their territory, show the game over screen
+        function gameOverLogic() {
+            gameOver = true;
+            document.getElementById("game-over-message").style.display = 'block';
+        }
+    </script>
 </body>
 </html>
